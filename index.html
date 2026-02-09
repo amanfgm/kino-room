@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CINEMA-ROOM | HI-FI CLEAN</title>
+    <style>
+        :root { 
+            --red: #E50914; 
+            --dark: #141414; 
+            --tv-frame: #1a1a1a; 
+            --solid-color: #E50914;
+            --ambi-color: rgba(229, 9, 20, 0.7);
+        }
+        
+        body { 
+            background-color: var(--dark); color: white; 
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+            margin: 0; padding: 0; overflow: hidden; transition: 0.8s ease;
+            user-select: none;
+            cursor: default;
+        }
+
+        body.hide-ui { cursor: none; }
+
+        header { 
+            padding: 20px 5%; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
+            position: fixed; width: 100%; z-index: 100; box-sizing: border-box;
+            display: flex; justify-content: space-between;
+            transition: opacity 0.5s ease;
+        }
+
+        .logo { color: var(--red); font-size: 2.2rem; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 15px rgba(229, 9, 20, 0.5); }
+
+        /* ПУЛЬТ */
+        .remote {
+            position: fixed; right: 0; top: 50%; transform: translateY(-50%);
+            width: 90px; background: linear-gradient(135deg, #2a2a2a 0%, #050505 100%);
+            border: 1px solid rgba(255,255,255,0.1); border-right: none;
+            border-radius: 20px 0 0 20px; padding: 30px 0; display: flex; flex-direction: column; align-items: center; gap: 20px; 
+            z-index: 2000; box-shadow: -5px 0 30px rgba(0,0,0,0.8);
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+
+        body.hide-ui .remote { transform: translate(100%, -50%); opacity: 0; }
+        body.hide-ui header { opacity: 0; }
+        
+        .remote-btn {
+            width: 60px; height: 55px; border-radius: 14px; border: none;
+            background: #1a1a1a; color: #fff; cursor: pointer; font-size: 10px; font-weight: bold;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: 0.2s; box-shadow: 4px 4px 8px #000, inset 0 1px 1px rgba(255,255,255,0.1);
+            text-align: center; border-bottom: 3px solid #000;
+        }
+        .remote-btn:hover { background: #252525; transform: translateY(-2px); color: white !important; }
+        .remote-btn:active { transform: scale(0.95); box-shadow: 2px 2px 4px #000; border-bottom-width: 1px; }
+
+        .cinema-room {
+            width: 100%; height: 100vh; 
+            background: radial-gradient(circle at center, #252525 0%, #000 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: 1.2s ease;
+        }
+
+        .tv-area { display: flex; flex-direction: column; align-items: center; gap: 35px; width: 100%; margin-top: -140px; position: relative; z-index: 1; }
+        .main-setup { display: flex; align-items: center; justify-content: center; gap: 50px; width: 100%; }
+
+        /* ЧАСЫ (Современный шрифт) */
+        .wall-clock {
+            position: absolute; top: -60px; background: #000; padding: 5px 20px; border-radius: 4px;
+            border: 1px solid var(--solid-color); color: var(--solid-color);
+            box-shadow: 0 0 20px var(--ambi-color); text-shadow: 0 0 10px var(--ambi-color);
+            /* Убран Courier New */
+            font-weight: bold; font-size: 1.5rem; letter-spacing: 2px;
+            z-index: 10; transition: all 0.5s ease;
+        }
+
+        .speaker {
+            width: 55px; height: 500px; background: #080808; border-radius: 12px;
+            border: 1px solid var(--ambi-color); box-shadow: 0 0 30px var(--ambi-color);
+            display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 30px 0; transition: 0.8s ease;
+        }
+        .speaker::after, .speaker::before { content: ''; width: 35px; height: 35px; background: #000; border-radius: 50%; border: 2px solid #151515; box-shadow: inset 0 0 15px var(--ambi-color); }
+        
+        .speaker.pumping { animation: pump 0.8s ease-in-out infinite alternate; }
+        @keyframes pump { from { transform: scale(1); } to { transform: scale(1.02); } }
+
+        .tv-frame {
+            position: relative; aspect-ratio: 16/9; background: var(--tv-frame); padding: 15px; border-radius: 15px;
+            box-shadow: 0 0 130px var(--ambi-color); width: 85%; max-width: 1100px; z-index: 1;
+            transition: 0.8s ease-in-out;
+        }
+        
+        .tv-screen { 
+            width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; 
+            overflow: hidden; border-radius: 5px; position: relative; cursor: pointer; 
+        }
+        
+        /* Убраны все эффекты экрана (шум, полосы) */
+
+        #main-frame { width: 100%; height: 100%; border: 0; display: none; z-index: 5; position: relative; }
+
+        .loader {
+            border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--red);
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; display: none; position: absolute; z-index: 6;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .shelf-container { position: absolute; bottom: 5%; width: 100%; display: flex; flex-direction: column; align-items: center; transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); z-index: 50; }
+        .shelf-wrapper { width: 100%; overflow: hidden; position: relative; padding: 80px 0; mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent); margin-bottom: -40px; }
+        .discs-collection { display: flex; gap: 25px; width: max-content; animation: scrollShelf 50s linear infinite; }
+        .discs-collection:hover { animation-play-state: paused; }
+        @keyframes scrollShelf { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        .disc-item {
+            width: 100px; height: 140px; background: #222; border-radius: 5px;
+            cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background-size: cover; background-position: center;
+            border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 20px rgba(0,0,0,0.6); position: relative; flex-shrink: 0;
+        }
+        .disc-item:hover { transform: scale(1.3) translateY(-25px); z-index: 1000; border-color: #fff; box-shadow: 0 20px 60px var(--ambi-color); }
+
+        .disc-title {
+            position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+            background: var(--red); color: white; padding: 5px 12px; border-radius: 4px;
+            font-size: 11px; white-space: nowrap; opacity: 0; transition: 0.3s;
+            pointer-events: none; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.9);
+            border: 1px solid rgba(255,255,255,0.3); z-index: 2000; 
+        }
+        .disc-item:hover .disc-title { opacity: 1; bottom: -15px; }
+
+        .shelf-base {
+            width: 94%; height: 30px; background: linear-gradient(to bottom, #2a2a2a, #050505);
+            border-radius: 6px; border-bottom: 5px solid #000; margin-top: -10px;
+            box-shadow: 0 25px 50px rgba(0,0,0,1); position: relative; z-index: 60; 
+            display: flex; justify-content: center; align-items: center;
+        }
+        .shelf-base::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent); border-radius: 6px 6px 0 0; }
+
+        /* МЕДИА КОНСОЛЬ (Современный шрифт) */
+        .media-console {
+            width: 200px; height: 16px; background: #000; border: 1px solid #333;
+            border-radius: 2px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            position: relative; z-index: 65;
+        }
+        .console-light {
+            width: 6px; height: 6px; background: red; border-radius: 50%;
+            box-shadow: 0 0 5px red; transition: 0.5s;
+        }
+        .console-text {
+            /* Убран Courier New */
+            font-size: 10px; color: #555;
+            letter-spacing: 1px; font-weight: bold; text-shadow: none; transition: 0.5s;
+        }
+        .media-console.active { border-color: var(--solid-color); box-shadow: 0 0 10px var(--ambi-color); }
+        .media-console.active .console-light { background: var(--solid-color); box-shadow: 0 0 8px var(--solid-color); }
+        .media-console.active .console-text { color: var(--solid-color); text-shadow: 0 0 5px var(--ambi-color); }
+
+        .toast {
+            position: fixed; top: 100px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: rgba(0, 0, 0, 0.9); color: white; padding: 15px 30px;
+            border-radius: 50px; border: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px; letter-spacing: 1px; font-weight: bold;
+            display: flex; align-items: center; gap: 10px;
+            opacity: 0; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 3000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        .toast.active { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast-icon { width: 10px; height: 10px; background: var(--red); border-radius: 50%; box-shadow: 0 0 10px var(--red); animation: pulse 1s infinite; }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    </style>
+</head>
+<body onclick="initAudio()">
+
+<header><div class="logo">CINEMA-ROOM</div></header>
+
+<div class="toast" id="toast">
+    <div class="toast-icon"></div>
+    <span id="toast-text">NOW PLAYING...</span>
+</div>
+
+<div class="remote">
+    <button class="remote-btn" style="color:var(--red)" onclick="stopVideo()">⏻<br>OFF</button>
+    <button class="remote-btn" style="color:#00d2ff" onclick="randomPlay()">🎲<br>MIX</button>
+    <button class="remote-btn" style="color:#ffeb3b" onclick="changeAmbi()">💡<br>AMBI</button>
+    <button class="remote-btn" style="color:#4caf50" onclick="changeLight()">🌗<br>ROOM</button>
+    <button class="remote-btn" style="color:#fff" onclick="toggleFullScreen()">⛶<br>FULL</button>
+</div>
+
+<section class="cinema-room" id="room">
+    <div class="tv-area">
+        <div class="wall-clock" id="clock">00:00:00</div>
+        <div class="main-setup">
+            <div class="speaker" id="spk-l"></div>
+            <div class="tv-frame" id="tv-box">
+                <div class="tv-screen" onclick="handleScreenClick()">
+                    <div class="loader" id="loader"></div>
+                    <div id="msg">
+                        <h1 style="letter-spacing: 12px; margin: 0; font-size: 4rem; color: #fff;">CINEMA-ROOM</h1>
+                        <p style="color: #666; font-size: 1rem; text-align: center; margin-top: 20px; letter-spacing: 5px;">TAP SCREEN TO START</p>
+                    </div>
+                    <iframe id="main-frame" allowfullscreen allow="autoplay"></iframe>
+                </div>
+            </div>
+            <div class="speaker" id="spk-r"></div>
+        </div>
+    </div>
+    
+    <div class="shelf-container" id="shelf-ui">
+        <div class="shelf-wrapper">
+            <div class="discs-collection" id="disc-shelf"></div>
+        </div>
+        <div class="shelf-base">
+            <div class="media-console" id="console">
+                <div class="console-light" id="console-light"></div>
+                <div class="console-text" id="console-text">STANDBY</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+const myMovies = [
+    { title: "Jackie Chan Adventures", id: "jackie-chan-adventures-1080p-ai-upscale", image: "https://archive.org/services/img/jackie-chan-adventures-1080p-ai-upscale" },
+    { title: "Death Note", id: "death-note-complete-2006-2007", image: "https://archive.org/services/img/death-note-complete-2006-2007" },
+    { title: "1 X-Men TAS (1080p)", id: "x-men-the-animated-series-1080p-ai-upscale_202204", image: "https://archive.org/services/img/x-men-the-animated-series-1080p-ai-upscale_202204" },
+    { title: "2 X-Men: Evolution", id: "x-men-evolution-1080p-ai-upscale", image: "https://archive.org/services/img/x-men-evolution-1080p-ai-upscale" },
+    { title: "3 Wolverine & X-Men", id: "wolverine-and-the-x-men-2009-tv-series", image: "https://archive.org/services/img/wolverine-and-the-x-men-2009-tv-series" },
+    { title: "4 Marvel Anime: X-Men", id: "x-men-marvel-anime-1080p-ai-upscale", image: "https://archive.org/services/img/x-men-marvel-anime-1080p-ai-upscale" },
+    { title: "1 Spider-Man: '67", id: "Spider-Man-67-Collection", image: "https://archive.org/services/img/Spider-Man-67-Collection" },
+    { title: "2 Spider-Man 5000", id: "spider-man-5000-1981-season-1-x264-mkv", image: "https://archive.org/services/img/spider-man-5000-1981-season-1-x264-mkv" },
+    { title: "3 Spider-Man: Venom Saga", id: "spider-man-the-animated-series-the-venom-saga", image: "https://archive.org/services/img/spider-man-the-animated-series-the-venom-saga" },
+    { title: "4 Spider-Man Unlimited", id: "spider-man-unlimited-1999-2001", image: "https://archive.org/services/img/spider-man-unlimited-1999-2001" },
+    { title: "The New Fantastic Four", id: "the-new-fantastic-four-1978-complete-series", image: "https://archive.org/services/img/the-new-fantastic-four-1978-complete-series" }
+];
+
+let audioCtx = null;
+function initAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playSound(freq, type, duration, vol, slide = false) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    if (slide) osc.frequency.exponentialRampToValueAtTime(freq / 3, audioCtx.currentTime + duration);
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+    osc.connect(g);
+    g.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+}
+
+const shelf = document.getElementById('disc-shelf');
+const frame = document.getElementById('main-frame');
+const msg = document.getElementById('msg');
+const room = document.getElementById('room');
+const loader = document.getElementById('loader');
+const toast = document.getElementById('toast');
+const toastText = document.getElementById('toast-text');
+const spkL = document.getElementById('spk-l');
+const spkR = document.getElementById('spk-r');
+const consoleBox = document.getElementById('console');
+const consoleText = document.getElementById('console-text');
+
+function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function handleScreenClick() {
+    if (frame.style.display === "none" || frame.src === "") {
+        randomPlay();
+    }
+}
+
+function createDiscElement(m) {
+    const d = document.createElement('div');
+    d.className = 'disc-item';
+    d.style.backgroundImage = `url(${m.image})`;
+    d.innerHTML = `<div class="disc-title">${m.title}</div>`;
+    d.onmouseenter = () => playSound(800, 'sine', 0.05, 0.1);
+    d.onclick = (e) => {
+        e.stopPropagation();
+        playSound(150, 'square', 0.6, 0.15, true);
+        start(m);
+    };
+    return d;
+}
+
+function renderDiscs() {
+    [...myMovies, ...myMovies].forEach(m => shelf.appendChild(createDiscElement(m)));
+}
+
+function showToast(title) {
+    toastText.innerText = "PLAYING: " + title.toUpperCase();
+    toast.classList.add('active');
+    setTimeout(() => {
+        toast.classList.remove('active');
+    }, 4000);
+}
+
+function start(movie) {
+    showToast(movie.title);
+    msg.style.display = 'none';
+    loader.style.display = 'block'; 
+    frame.style.display = 'none'; 
+    
+    // Анимация
+    spkL.classList.add('pumping');
+    spkR.classList.add('pumping');
+    consoleBox.classList.add('active');
+    consoleText.innerText = "LOADING...";
+
+    let url = "";
+    if (movie.id.startsWith("http")) {
+        url = movie.id;
+    } else {
+        url = `https://archive.org/embed/${movie.id}&playlist=1&autoplay=1`;
+    }
+
+    frame.src = url;
+
+    setTimeout(() => {
+        frame.style.display = 'block';
+        loader.style.display = 'none';
+        consoleText.innerText = "PLAYING"; 
+    }, 1500); 
+}
+
+function stopVideo() {
+    playSound(400, 'sine', 0.2, 0.1);
+    frame.src = ''; 
+    frame.style.display = 'none'; 
+    msg.style.display = 'block';
+    
+    // Стоп анимация
+    spkL.classList.remove('pumping');
+    spkR.classList.remove('pumping');
+    consoleBox.classList.remove('active');
+    consoleText.innerText = "STANDBY";
+}
+
+function saveSettings(color, mode, solid) {
+    localStorage.setItem('cinemaColor', color);
+    localStorage.setItem('cinemaMode', mode);
+    localStorage.setItem('cinemaSolid', solid);
+}
+
+function loadSettings() {
+    const savedColor = localStorage.getItem('cinemaColor');
+    const savedMode = localStorage.getItem('cinemaMode');
+    const savedSolid = localStorage.getItem('cinemaSolid');
+
+    if (savedColor && savedSolid) {
+        document.documentElement.style.setProperty('--ambi-color', savedColor);
+        document.documentElement.style.setProperty('--solid-color', savedSolid);
+    }
+    
+    if (savedMode !== null) {
+        roomMode = parseInt(savedMode) - 1; 
+        changeLight(false);
+    }
+}
+
+function changeAmbi() {
+    playSound(1000, 'sine', 0.05, 0.1);
+    const colors = ['#E50914', '#00d2ff', '#4caf50', '#ffeb3b', '#b400ff'];
+    const chosen = colors[Math.floor(Math.random() * colors.length)];
+    
+    const ambi = chosen + 'b3';
+    document.documentElement.style.setProperty('--ambi-color', ambi);
+    document.documentElement.style.setProperty('--solid-color', chosen);
+    
+    saveSettings(ambi, roomMode, chosen);
+}
+
+let roomMode = 0;
+function changeLight(playSnd = true) {
+    roomMode = (roomMode + 1) % 3;
+    const shelfUI = document.getElementById('shelf-ui');
+    const clock = document.getElementById('clock');
+    
+    if (playSnd) playSound(200, 'sine', 0.3, 0.1);
+
+    if (roomMode === 0) { // ЯРКО
+        room.style.background = 'radial-gradient(circle at center, #252525 0%, #000 100%)';
+        shelfUI.style.opacity = "1"; shelfUI.style.pointerEvents = "auto";
+        spkL.style.opacity = "1"; spkR.style.opacity = "1"; clock.style.opacity = "1";
+    } else if (roomMode === 1) { // ТУСКЛО
+        room.style.background = '#080808';
+        shelfUI.style.opacity = "0.4"; shelfUI.style.pointerEvents = "auto";
+        spkL.style.opacity = "0.5"; spkR.style.opacity = "0.5"; clock.style.opacity = "0.8";
+    } else { // ТЕМНО
+        room.style.background = '#000';
+        shelfUI.style.opacity = "0"; shelfUI.style.pointerEvents = "none";
+        spkL.style.opacity = "0.3"; spkR.style.opacity = "0.3"; clock.style.opacity = "0.5";
+    }
+    
+    const currColor = getComputedStyle(document.documentElement).getPropertyValue('--ambi-color');
+    const currSolid = getComputedStyle(document.documentElement).getPropertyValue('--solid-color');
+    saveSettings(currColor, roomMode, currSolid);
+}
+
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+function randomPlay() {
+    playSound(150, 'square', 0.6, 0.15, true);
+    start(myMovies[Math.floor(Math.random() * myMovies.length)]);
+}
+
+let idleTimer;
+document.addEventListener('mousemove', () => {
+    document.body.classList.remove('hide-ui');
+    clearTimeout(idleTimer);
+    if (frame.style.display === 'block') {
+        idleTimer = setTimeout(() => {
+            document.body.classList.add('hide-ui');
+        }, 3000); 
+    }
+});
+
+window.onload = () => {
+    loadSettings();
+    renderDiscs();
+};
+</script>
+</body>
+</html>
