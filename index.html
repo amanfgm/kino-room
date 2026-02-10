@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CINEMA-ROOM | FINAL FIX</title>
+    <title>CINEMA-ROOM | PERFECT FIT</title>
     <style>
         :root { 
             --red: #E50914; 
@@ -21,6 +21,9 @@
             cursor: default;
             height: 100vh;
             width: 100vw;
+            /* Используем Flex-колонку для всего тела */
+            display: flex;
+            flex-direction: column;
         }
 
         body.hide-ui { cursor: none; }
@@ -30,7 +33,7 @@
             position: fixed; width: 100%; z-index: 100; box-sizing: border-box;
             display: flex; justify-content: space-between;
             transition: opacity 0.5s ease;
-            pointer-events: none; /* Чтобы клики проходили сквозь шапку */
+            pointer-events: none;
         }
 
         .logo { color: var(--red); font-size: 2.2rem; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 15px rgba(229, 9, 20, 0.5); pointer-events: auto; }
@@ -57,61 +60,52 @@
         .remote-btn:hover { background: #252525; transform: translateY(-2px); color: white !important; }
         .remote-btn:active { transform: scale(0.95); box-shadow: 2px 2px 4px #000; border-bottom-width: 1px; }
 
-        /* --- ГЛАВНАЯ СТРУКТУРА (ЗОНИРОВАНИЕ) --- */
+        /* --- ГЛАВНАЯ СТРУКТУРА --- */
         
-        /* 1. Верхняя зона для ТВ (всегда 70% высоты) */
-        .tv-zone {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 70%; /* Строго 70% экрана */
+        .cinema-room {
+            flex-grow: 1; /* Занимает все место */
             display: flex;
-            align-items: center; /* Центрируем ТВ по вертикали внутри зоны */
-            justify-content: center;
-            z-index: 10;
+            flex-direction: column;
+            justify-content: space-between; /* Распределяем верх и низ */
+            background: radial-gradient(circle at center, #252525 0%, #000 100%);
+            overflow: hidden;
         }
 
-        /* 2. Нижняя зона для полки (всегда 30% высоты) */
-        .shelf-zone {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 30%; /* Строго 30% экрана */
+        /* ЗОНА ТВ */
+        .tv-area {
+            flex-grow: 1; /* Растет, заполняя пространство */
             display: flex;
-            align-items: flex-end; /* Диски стоят на дне */
+            align-items: center;
             justify-content: center;
-            z-index: 20;
-            padding-bottom: 20px; /* Отступ снизу */
-            box-sizing: border-box;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            /* ВАЖНО: Ограничиваем высоту ТВ, чтобы он не лез на полку */
+            max-height: 65vh; 
+            min-height: 300px;
+            margin-top: 60px; /* Отступ от шапки */
         }
-
-        /* КОМПОНЕНТЫ КОМНАТЫ */
 
         .main-setup { 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             gap: 40px; 
-            /* ТВ масштабируется, чтобы влезть в свою зону */
-            height: 80%; 
-            width: 90%;
+            height: 100%;
+            width: 100%;
         }
 
         .tv-frame {
             position: relative; 
-            /* Пропорции 16:9 */
             aspect-ratio: 16/9; 
             background: var(--tv-frame); padding: 15px; border-radius: 15px;
             box-shadow: 0 0 130px var(--ambi-color); 
             
-            /* ГЛАВНОЕ: ТВ подстраивается под высоту зоны */
-            height: 100%; 
-            width: auto; 
-            
-            /* Но не становится слишком широким */
-            max-width: 75vw; 
+            /* Адаптивный размер рамки */
+            height: auto;
+            width: auto;
+            max-height: 100%; /* Не выше контейнера */
+            max-width: 80vw; /* Не шире экрана */
             
             z-index: 1;
             transition: 0.8s ease-in-out;
@@ -125,9 +119,7 @@
 
         .speaker {
             width: 50px; 
-            /* Высота колонок зависит от высоты ТВ-зоны */
-            height: 90%; 
-            max-height: 500px;
+            height: 80%; /* Чуть меньше высоты рамки */
             background: #080808; border-radius: 12px;
             border: 1px solid var(--ambi-color); box-shadow: 0 0 30px var(--ambi-color);
             display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 30px 0; transition: 0.8s ease;
@@ -136,7 +128,6 @@
         .speaker.pumping { animation: pump 0.8s ease-in-out infinite alternate; }
         @keyframes pump { from { transform: scale(1); } to { transform: scale(1.02); } }
 
-        /* ЧАСЫ ПРИВЯЗАНЫ К ТВ, А НЕ К СТЕНЕ */
         .wall-clock {
             position: absolute; 
             top: -50px; 
@@ -157,29 +148,50 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* ПОЛКА */
-        .shelf-content {
-            display: flex; flex-direction: column; align-items: center; width: 100%;
+        /* ЗОНА ПОЛКИ */
+        .shelf-container { 
+            flex-shrink: 0; /* Не сжиматься */
+            width: 100%; 
+            display: flex; flex-direction: column; align-items: center; 
+            z-index: 50; 
+            /* Отступ сверху, чтобы гарантировать зазор между ТВ и дисками */
+            padding-top: 20px;
         }
 
         .shelf-wrapper { 
-            width: 100%; overflow: hidden; position: relative; 
-            padding: 20px 0; /* Отступы для эффекта ховера */
-            mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent); 
+            width: 100%; overflow: visible; /* Разрешаем вылезать за пределы враппера (для ховера) */
+            position: relative; 
+            padding: 40px 0 10px 0; 
+            /* Убрали маску, чтобы не резала ховер */
         }
-        .discs-collection { display: flex; gap: 20px; width: max-content; animation: scrollShelf 50s linear infinite; padding: 0 50px; }
+        
+        .discs-collection { 
+            display: flex; gap: 20px; width: max-content; 
+            animation: scrollShelf 50s linear infinite; 
+            padding: 0 50px; 
+            align-items: flex-end; /* Прижимаем диски к низу */
+        }
         .discs-collection:hover { animation-play-state: paused; }
         @keyframes scrollShelf { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
         .disc-item {
-            /* Фиксированный размер дисков, чтобы не прыгали */
             width: 90px; height: 130px; 
             background: #222; border-radius: 5px;
-            cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer; transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             background-size: cover; background-position: center;
             border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 20px rgba(0,0,0,0.6); position: relative; flex-shrink: 0;
+            
+            /* Важно: точка трансформации внизу, чтобы он рос вверх */
+            transform-origin: bottom center;
         }
-        .disc-item:hover { transform: scale(1.4) translateY(-30px); z-index: 1000; border-color: #fff; box-shadow: 0 20px 60px var(--ambi-color); }
+        
+        /* ИСПРАВЛЕННЫЙ ХОВЕР: Меньше прыжок, больше увеличение на месте */
+        .disc-item:hover { 
+            transform: scale(1.3) translateY(-10px); /* Было -30px, стало -10px */
+            z-index: 1000; 
+            border-color: #fff; 
+            box-shadow: 0 20px 60px var(--ambi-color); 
+        }
 
         .disc-title {
             position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
@@ -188,13 +200,14 @@
             pointer-events: none; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.9);
             border: 1px solid rgba(255,255,255,0.3); z-index: 2000; 
         }
-        .disc-item:hover .disc-title { opacity: 1; bottom: -15px; }
+        .disc-item:hover .disc-title { opacity: 1; bottom: -20px; }
 
         .shelf-base {
             width: 94%; height: 25px; background: linear-gradient(to bottom, #2a2a2a, #050505);
-            border-radius: 6px; border-bottom: 5px solid #000; margin-top: -10px;
+            border-radius: 6px; border-bottom: 5px solid #000; margin-top: -5px;
             box-shadow: 0 25px 50px rgba(0,0,0,1); position: relative; z-index: 60; 
             display: flex; justify-content: center; align-items: center;
+            margin-bottom: 20px;
         }
         .shelf-base::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent); border-radius: 6px 6px 0 0; }
 
@@ -223,14 +236,11 @@
         .toast.active { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast-icon { width: 10px; height: 10px; background: var(--red); border-radius: 50%; box-shadow: 0 0 10px var(--red); animation: pulse 1s infinite; }
 
-        /* СПАСАТЕЛЬНЫЙ КРУГ ДЛЯ НОУТБУКОВ */
+        /* Media queries для ноутбуков */
         @media (max-height: 800px) {
-            .tv-zone { height: 65%; } /* Уменьшаем место под ТВ */
-            .shelf-zone { height: 35%; } /* Даем больше места полке */
-            .main-setup { height: 90%; gap: 20px; } /* Сжимаем сетап */
-            .disc-item { width: 70px; height: 100px; } /* Уменьшаем диски */
-            .logo { font-size: 1.5rem; }
-            .wall-clock { top: -40px; font-size: 1rem; }
+            .tv-area { margin-top: 40px; max-height: 55vh; } /* Уменьшаем ТВ на ноутбуках */
+            .disc-item { width: 70px; height: 100px; }
+            .logo { font-size: 1.8rem; }
         }
     </style>
 </head>
@@ -251,29 +261,28 @@
     <button class="remote-btn" style="color:#fff" onclick="toggleFullScreen()">⛶<br>FULL</button>
 </div>
 
-<div class="tv-zone">
-    <div class="main-setup">
-        <div class="speaker" id="spk-l"></div>
-        
-        <div class="tv-frame" id="tv-box">
-            <div class="wall-clock" id="clock">00:00:00</div>
+<section class="cinema-room" id="room">
+    <div class="tv-area">
+        <div class="main-setup">
+            <div class="speaker" id="spk-l"></div>
             
-            <div class="tv-screen" onclick="handleScreenClick()">
-                <div class="loader" id="loader"></div>
-                <div id="msg">
-                    <h1 style="letter-spacing: 8px; margin: 0; font-size: 3vw; color: #fff;">CINEMA-ROOM</h1>
-                    <p style="color: #666; font-size: 0.8vw; text-align: center; margin-top: 20px; letter-spacing: 4px;">TAP SCREEN TO START</p>
+            <div class="tv-frame" id="tv-box">
+                <div class="wall-clock" id="clock">00:00:00</div>
+                <div class="tv-screen" onclick="handleScreenClick()">
+                    <div class="loader" id="loader"></div>
+                    <div id="msg">
+                        <h1 style="letter-spacing: 8px; margin: 0; font-size: 3vw; color: #fff;">CINEMA-ROOM</h1>
+                        <p style="color: #666; font-size: 0.8vw; text-align: center; margin-top: 20px; letter-spacing: 4px;">TAP SCREEN TO START</p>
+                    </div>
+                    <iframe id="main-frame" allowfullscreen allow="autoplay"></iframe>
                 </div>
-                <iframe id="main-frame" allowfullscreen allow="autoplay"></iframe>
             </div>
+            
+            <div class="speaker" id="spk-r"></div>
         </div>
-        
-        <div class="speaker" id="spk-r"></div>
     </div>
-</div>
-
-<div class="shelf-zone">
-    <div class="shelf-content">
+    
+    <div class="shelf-container" id="shelf-ui">
         <div class="shelf-wrapper">
             <div class="discs-collection" id="disc-shelf"></div>
         </div>
@@ -284,7 +293,7 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <script>
 const myMovies = [
