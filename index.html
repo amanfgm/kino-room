@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CINEMA-ROOM | PERFECT FIT</title>
+    <title>CINEMA-ROOM | BIG SCREEN</title>
     <style>
         :root { 
             --red: #E50914; 
@@ -21,7 +21,6 @@
             cursor: default;
             height: 100vh;
             width: 100vw;
-            /* Используем Flex-колонку для всего тела */
             display: flex;
             flex-direction: column;
         }
@@ -63,34 +62,34 @@
         /* --- ГЛАВНАЯ СТРУКТУРА --- */
         
         .cinema-room {
-            flex-grow: 1; /* Занимает все место */
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Распределяем верх и низ */
+            justify-content: space-between;
             background: radial-gradient(circle at center, #252525 0%, #000 100%);
             overflow: hidden;
         }
 
         /* ЗОНА ТВ */
         .tv-area {
-            flex-grow: 1; /* Растет, заполняя пространство */
+            flex-grow: 1; 
             display: flex;
             align-items: center;
             justify-content: center;
             width: 100%;
             position: relative;
             z-index: 1;
-            /* ВАЖНО: Ограничиваем высоту ТВ, чтобы он не лез на полку */
-            max-height: 65vh; 
+            /* УВЕЛИЧИЛИ МАКСИМАЛЬНУЮ ВЫСОТУ ДО 75% */
+            max-height: 75vh; 
             min-height: 300px;
-            margin-top: 60px; /* Отступ от шапки */
+            margin-top: 50px; 
         }
 
         .main-setup { 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            gap: 40px; 
+            gap: 30px; /* Чуть уменьшили отступ между колонками и ТВ */
             height: 100%;
             width: 100%;
         }
@@ -98,14 +97,14 @@
         .tv-frame {
             position: relative; 
             aspect-ratio: 16/9; 
-            background: var(--tv-frame); padding: 15px; border-radius: 15px;
+            background: var(--tv-frame); padding: 10px; border-radius: 10px;
             box-shadow: 0 0 130px var(--ambi-color); 
             
-            /* Адаптивный размер рамки */
-            height: auto;
+            /* ТЕЛЕВИЗОР ТЕПЕРЬ БОЛЬШЕ */
+            height: 100%; 
             width: auto;
-            max-height: 100%; /* Не выше контейнера */
-            max-width: 80vw; /* Не шире экрана */
+            max-height: 100%; 
+            max-width: 90vw; /* Разрешаем быть шире */
             
             z-index: 1;
             transition: 0.8s ease-in-out;
@@ -114,28 +113,29 @@
         
         .tv-screen { 
             width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; 
-            overflow: hidden; border-radius: 5px; position: relative; cursor: pointer; 
+            overflow: hidden; border-radius: 4px; position: relative; cursor: pointer; 
         }
 
+        /* КОЛОНКИ СТАЛИ МЕНЬШЕ */
         .speaker {
-            width: 50px; 
-            height: 80%; /* Чуть меньше высоты рамки */
-            background: #080808; border-radius: 12px;
+            width: 40px; /* Уже */
+            height: 60%; /* Короче (60% от высоты ТВ) */
+            background: #080808; border-radius: 8px;
             border: 1px solid var(--ambi-color); box-shadow: 0 0 30px var(--ambi-color);
-            display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 30px 0; transition: 0.8s ease;
+            display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 20px 0; transition: 0.8s ease;
         }
-        .speaker::after, .speaker::before { content: ''; width: 30px; height: 30px; background: #000; border-radius: 50%; border: 2px solid #151515; box-shadow: inset 0 0 15px var(--ambi-color); }
+        .speaker::after, .speaker::before { content: ''; width: 24px; height: 24px; background: #000; border-radius: 50%; border: 2px solid #151515; box-shadow: inset 0 0 10px var(--ambi-color); }
         .speaker.pumping { animation: pump 0.8s ease-in-out infinite alternate; }
         @keyframes pump { from { transform: scale(1); } to { transform: scale(1.02); } }
 
         .wall-clock {
             position: absolute; 
-            top: -50px; 
+            top: -45px; 
             left: 50%; transform: translateX(-50%);
-            background: #000; padding: 5px 20px; border-radius: 4px;
+            background: #000; padding: 4px 15px; border-radius: 4px;
             border: 1px solid var(--solid-color); color: var(--solid-color);
             box-shadow: 0 0 20px var(--ambi-color); text-shadow: 0 0 10px var(--ambi-color);
-            font-weight: bold; font-size: 1.2rem; letter-spacing: 2px;
+            font-weight: bold; font-size: 1.1rem; letter-spacing: 2px;
             z-index: 10; transition: all 0.5s ease;
             white-space: nowrap;
         }
@@ -150,26 +150,24 @@
 
         /* ЗОНА ПОЛКИ */
         .shelf-container { 
-            flex-shrink: 0; /* Не сжиматься */
+            flex-shrink: 0; 
             width: 100%; 
             display: flex; flex-direction: column; align-items: center; 
             z-index: 50; 
-            /* Отступ сверху, чтобы гарантировать зазор между ТВ и дисками */
-            padding-top: 20px;
+            padding-top: 10px;
         }
 
         .shelf-wrapper { 
-            width: 100%; overflow: visible; /* Разрешаем вылезать за пределы враппера (для ховера) */
+            width: 100%; overflow: visible; 
             position: relative; 
-            padding: 40px 0 10px 0; 
-            /* Убрали маску, чтобы не резала ховер */
+            padding: 30px 0 5px 0; 
         }
         
         .discs-collection { 
             display: flex; gap: 20px; width: max-content; 
             animation: scrollShelf 50s linear infinite; 
             padding: 0 50px; 
-            align-items: flex-end; /* Прижимаем диски к низу */
+            align-items: flex-end; 
         }
         .discs-collection:hover { animation-play-state: paused; }
         @keyframes scrollShelf { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
@@ -180,14 +178,11 @@
             cursor: pointer; transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             background-size: cover; background-position: center;
             border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 20px rgba(0,0,0,0.6); position: relative; flex-shrink: 0;
-            
-            /* Важно: точка трансформации внизу, чтобы он рос вверх */
             transform-origin: bottom center;
         }
         
-        /* ИСПРАВЛЕННЫЙ ХОВЕР: Меньше прыжок, больше увеличение на месте */
         .disc-item:hover { 
-            transform: scale(1.3) translateY(-10px); /* Было -30px, стало -10px */
+            transform: scale(1.3) translateY(-10px); 
             z-index: 1000; 
             border-color: #fff; 
             box-shadow: 0 20px 60px var(--ambi-color); 
@@ -207,7 +202,7 @@
             border-radius: 6px; border-bottom: 5px solid #000; margin-top: -5px;
             box-shadow: 0 25px 50px rgba(0,0,0,1); position: relative; z-index: 60; 
             display: flex; justify-content: center; align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .shelf-base::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent); border-radius: 6px 6px 0 0; }
 
@@ -236,11 +231,11 @@
         .toast.active { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast-icon { width: 10px; height: 10px; background: var(--red); border-radius: 50%; box-shadow: 0 0 10px var(--red); animation: pulse 1s infinite; }
 
-        /* Media queries для ноутбуков */
         @media (max-height: 800px) {
-            .tv-area { margin-top: 40px; max-height: 55vh; } /* Уменьшаем ТВ на ноутбуках */
+            .tv-area { max-height: 60vh; } 
             .disc-item { width: 70px; height: 100px; }
             .logo { font-size: 1.8rem; }
+            .shelf-wrapper { padding-top: 20px; }
         }
     </style>
 </head>
