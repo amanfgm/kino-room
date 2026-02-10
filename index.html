@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CINEMA-ROOM | SMART FIX</title>
+    <title>CINEMA-ROOM | FIXED LAYOUT</title>
     <style>
         :root { 
             --red: #E50914; 
@@ -29,6 +29,7 @@
             position: fixed; width: 100%; z-index: 100; box-sizing: border-box;
             display: flex; justify-content: space-between;
             transition: opacity 0.5s ease;
+            height: 80px; /* Фиксируем высоту шапки */
         }
 
         .logo { color: var(--red); font-size: 2.2rem; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 15px rgba(229, 9, 20, 0.5); }
@@ -55,34 +56,59 @@
         .remote-btn:hover { background: #252525; transform: translateY(-2px); color: white !important; }
         .remote-btn:active { transform: scale(0.95); box-shadow: 2px 2px 4px #000; border-bottom-width: 1px; }
 
+        /* --- ИСПРАВЛЕННАЯ СТРУКТУРА (FLEXBOX) --- */
         .cinema-room {
-            width: 100%; height: 100vh; 
+            width: 100%; 
+            height: 100vh; 
             background: radial-gradient(circle at center, #252525 0%, #000 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: 1.2s ease;
-            /* Важное изменение: позволяем контенту сжиматься */
-            overflow: hidden; 
+            
+            /* Включаем Flex-колонку */
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; /* Распределяем верх и низ */
+            overflow: hidden;
         }
 
         .tv-area { 
-            display: flex; flex-direction: column; align-items: center; gap: 35px; width: 100%; 
-            position: relative; z-index: 1; 
-            /* Убрали фиксированный margin-top, теперь управляется flexbox и scale */
-            transition: transform 0.5s ease;
+            /* Занимает все свободное место между шапкой и полкой */
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; /* Центрируем ТВ по вертикали */
+            width: 100%; 
+            position: relative; 
+            z-index: 1; 
+            
+            /* Убрали фиксированные margin-top, теперь управляется флексом */
+            padding-top: 20px; 
+            padding-bottom: 20px;
+            box-sizing: border-box;
         }
 
-        .main-setup { display: flex; align-items: center; justify-content: center; gap: 50px; width: 100%; }
+        .main-setup { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 50px; 
+            width: 100%; 
+            height: 100%; /* Чтобы колонки и ТВ растягивались в доступном месте */
+        }
 
         .wall-clock {
-            position: absolute; top: -60px; background: #000; padding: 5px 20px; border-radius: 4px;
+            position: absolute; top: 10%; background: #000; padding: 5px 20px; border-radius: 4px;
             border: 1px solid var(--solid-color); color: var(--solid-color);
             box-shadow: 0 0 20px var(--ambi-color); text-shadow: 0 0 10px var(--ambi-color);
             font-weight: bold; font-size: 1.5rem; letter-spacing: 2px;
             z-index: 10; transition: all 0.5s ease;
         }
 
+        /* Адаптивные колонки */
         .speaker {
-            width: 55px; height: 500px; background: #080808; border-radius: 12px;
+            width: 55px; 
+            height: 60%; /* Высота в процентах от доступного места */
+            max-height: 500px; /* Не больше 500px */
+            background: #080808; border-radius: 12px;
             border: 1px solid var(--ambi-color); box-shadow: 0 0 30px var(--ambi-color);
             display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 30px 0; transition: 0.8s ease;
         }
@@ -92,14 +118,29 @@
         @keyframes pump { from { transform: scale(1); } to { transform: scale(1.02); } }
 
         .tv-frame {
-            position: relative; aspect-ratio: 16/9; background: var(--tv-frame); padding: 15px; border-radius: 15px;
-            box-shadow: 0 0 130px var(--ambi-color); width: 85%; max-width: 1100px; z-index: 1;
+            position: relative; 
+            aspect-ratio: 16/9; 
+            background: var(--tv-frame); padding: 15px; border-radius: 15px;
+            box-shadow: 0 0 130px var(--ambi-color); 
+            z-index: 1;
             transition: 0.8s ease-in-out;
+            
+            /* ГЛАВНОЕ: Адаптивный размер ТВ */
+            width: auto;
+            height: auto;
+            max-width: 85%;
+            max-height: 65vh; /* ТВ никогда не займет больше 65% высоты экрана */
         }
         
+        /* Хак, чтобы aspect-ratio работал корректно при ресайзе */
         .tv-screen { 
             width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; 
             overflow: hidden; border-radius: 5px; position: relative; cursor: pointer; 
+        }
+
+        /* Этот пустой элемент держит пропорции если aspect-ratio не поддерживается, но в современных браузерах работает aspect-ratio на .tv-frame */
+        .tv-frame::before {
+            content: ""; display: block; height: 100%; 
         }
 
         #main-frame { width: 100%; height: 100%; border: 0; display: none; z-index: 5; position: relative; }
@@ -111,20 +152,19 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* ИСПРАВЛЕНИЕ ПОЛКИ */
+        /* --- ИСПРАВЛЕННАЯ ПОЛКА --- */
         .shelf-container { 
-            /* Изменили absolute на fixed, чтобы всегда была внизу */
-            position: fixed; 
-            bottom: 0; 
+            /* Теперь полка - это часть потока (relative), а не наложенный слой */
+            position: relative; 
             width: 100%; 
             display: flex; flex-direction: column; align-items: center; 
             transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
             z-index: 50; 
-            /* Небольшой scale для адаптивности */
-            transform-origin: bottom center;
+            flex-shrink: 0; /* Запрещаем сжимать полку */
+            padding-bottom: 10px;
         }
 
-        .shelf-wrapper { width: 100%; overflow: hidden; position: relative; padding: 80px 0; mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent); margin-bottom: -40px; }
+        .shelf-wrapper { width: 100%; overflow: hidden; position: relative; padding: 40px 0 60px 0; mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent); margin-bottom: -40px; }
         .discs-collection { display: flex; gap: 25px; width: max-content; animation: scrollShelf 50s linear infinite; }
         .discs-collection:hover { animation-play-state: paused; }
         @keyframes scrollShelf { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
@@ -187,19 +227,13 @@
 
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-        /* --- ГЛАВНОЕ ИСПРАВЛЕНИЕ (АДАПТИВ) --- */
-        /* Если экран ниже 900px (стандартный ноут) - уменьшаем масштаб */
-        @media (max-height: 900px) {
-            .tv-area { transform: scale(0.85) translateY(-20px); }
-            .shelf-container { transform: scale(0.9); bottom: -10px; }
-        }
-
-        /* Если экран совсем узкий (нетбук или свернутое окно) */
+        /* Media queries для совсем маленьких экранов */
         @media (max-height: 700px) {
-            .tv-area { transform: scale(0.7) translateY(-40px); }
-            .shelf-container { transform: scale(0.75); bottom: -30px; }
+            .shelf-wrapper { padding: 20px 0 40px 0; margin-bottom: -30px; }
+            .disc-item { width: 80px; height: 110px; }
+            .wall-clock { top: 5%; font-size: 1.2rem; }
+            .logo { font-size: 1.8rem; }
         }
-        
     </style>
 </head>
 <body onclick="initAudio()">
